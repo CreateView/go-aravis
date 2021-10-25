@@ -47,10 +47,17 @@ import (
 	"unsafe"
 )
 
+type CameraThreadType int
+
+const (
+	CameraThreadNormal CameraThreadType = iota
+	CameraThreadRealtime
+	CameraThreadHighPriority
+)
+
 type Camera struct {
-	camera                *C.struct__ArvCamera
-	UseRealtimeThread     bool
-	UseHighPriorityThread bool
+	camera    *C.struct__ArvCamera
+	Threading CameraThreadType
 }
 
 const (
@@ -85,15 +92,15 @@ func (c *Camera) CreateStream() (Stream, error) {
 	var gerror *C.GError
 	var err error
 
-	switch {
-	case c.UseRealtimeThread:
+	switch c.Threading {
+	case CameraThreadRealtime:
 		s.stream = C.arv_camera_create_rt_stream(
 			c.camera,
 			nil,
 			&gerror,
 		)
 
-	case c.UseHighPriorityThread:
+	case CameraThreadHighPriority:
 		s.stream = C.arv_camera_create_hp_stream(
 			c.camera,
 			nil,
